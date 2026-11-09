@@ -2,6 +2,7 @@ provider "cloudflare" {
   api_token = var.api_token
 }
 
+# El módulo app agrupa la base D1, el Worker y su subdominio.
 module "app" {
   source = "./modules/app"
 
