@@ -2,30 +2,25 @@ provider "cloudflare" {
   api_token = var.api_token
 }
 
-resource "cloudflare_d1_database" "app" {
-  account_id = var.account_id
-  name       = var.d1_database_name
+module "app" {
+  source = "./modules/app"
+
+  account_id       = var.account_id
+  d1_database_name = var.d1_database_name
+  worker_name      = var.worker_name
 }
 
-resource "cloudflare_workers_script" "app" {
-  account_id         = var.account_id
-  script_name        = var.worker_name
-  main_module        = "worker.js"
-  content_file       = "${path.module}/worker.js"
-  content_sha256     = filesha256("${path.module}/worker.js")
-  compatibility_date = "2025-10-28"
-
-  bindings = [
-    {
-      name = "DB"
-      type = "d1"
-      id   = cloudflare_d1_database.app.id
-    }
-  ]
+moved {
+  from = cloudflare_d1_database.app
+  to   = module.app.cloudflare_d1_database.app
 }
 
-resource "cloudflare_workers_script_subdomain" "app" {
-  account_id  = var.account_id
-  script_name = cloudflare_workers_script.app.script_name
-  enabled     = true
+moved {
+  from = cloudflare_workers_script.app
+  to   = module.app.cloudflare_workers_script.app
+}
+
+moved {
+  from = cloudflare_workers_script_subdomain.app
+  to   = module.app.cloudflare_workers_script_subdomain.app
 }
